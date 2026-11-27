@@ -1,0 +1,18 @@
+# dev-environment — specification v3
+
+Revision: specify host/container helper resolution, Codex discovery and tool-image refresh in the sibling layout. Baseline remains MTB; no dependency on the demo package or Maker.
+
+## Reference and installation
+
+MTB `docker/dev/dev.sh` identifies the tools image by Dockerfile hash and builds it when absent. `build` builds the application; ordinary build/check invocations use disposable `run --rm --no-deps --pull never` containers. `docker/dev/compose.yaml` mounts the actual checkout and a distinct cache, using the calling UID/GID. Service startup and `update` are additions, not baseline verbs.
+
+- Ask for the project root. Inspect nested checkouts, manifests, lockfiles, CI, existing tooling and commands. Generate `<project>/dev/Dockerfile`, `compose.yaml` and project-specific command/working-directory mappings there. Write the discovered checkout and module paths into installation configuration; do not infer them from `../..`. Use actual project-native build/check/test commands and preserve native selectors (including `Class#method` where supported).
+- Ship a valid Hermes `SKILL.md`, generalized MTB `dev.sh`, Compose/Dockerfile references and required helpers. Copy the finished script unchanged. Resolve host-side helpers relative to the script; put all needed helpers inside the install. Bind the selected checkout read/write at `/workspace` for a single-checkout project; mount dev helpers separately at `/opt/project-dev` read-only. For multiple checkouts declare distinct mount points and working directories. Never require helpers to exist under `/workspace/docker/dev` or a sibling `isolated/` tree. Keep mutable caches and outputs on designated writable mounts.
+- Trace `dev.sh`, `unit.sh`, `profile.sh` and their called resources. Adapt applicable commands, including the isolated runtime helper when a project needs E2E. Keep MTB-only profiling/E2E prerequisites confined to those selected commands; Java/Node build tools belong in the tool image, not the host. Apply the same path resolution to nested helper calls.
+- Put exact supported commands in `<project>/dev/AGENTS.md`. Add a short pointer in each working checkout's root `AGENTS.md` using the actual relative path; preserve unrelated instructions. Codex started in a checkout must discover the commands without searching a sibling directory. Install and verify target-profile grants for supported script invocations; preserve unrelated permissions.
+
+## Operate and verify
+
+- Source edits, including untracked files, are visible immediately. Ordinary commands reuse the existing tools image and cache. Start only development services configured for this project when needed.
+- `dev.sh update` pulls the configured bases and explicitly rebuilds the tool image even when the Dockerfile hash is unchanged. Select the replacement for subsequent invocations only after a successful build; on failure report the error and retain the last usable tools image. Do not change application dependency files, lockfiles or persistent dev data.
+- Anjin implements via Codex; Fujiko reviews. Install this package alone beside a differently named, nested checkout. Invoke the installed script from another working directory and exercise a helper inside the container. Verify a new untracked file is visible, native selectors reach the right command, ordinary runs reuse tools/cache, failed checks return nonzero and outputs belong to the invoking user. Check root-started Codex guide discovery; verify `update` separately from ordinary runs. No new application framework suite or mandatory full-suite install probe.

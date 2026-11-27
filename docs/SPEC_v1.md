@@ -1,0 +1,18 @@
+# dev-environment — specification v1
+
+Outcome: an agent edits the current checkout and uses its project toolchain inside containers. New files and uncommitted edits are immediately available. A normal build, check or test reuses the tools image and caches. No demo skill or Maker required.
+
+## Installation and operation
+
+- Deliver an independent Hermes package: valid `SKILL.md`, generalized MTB `dev.sh`, required helpers, Dockerfile/Compose references and targeted smoke checks. Start from the working MTB implementation; do not generate a new control script per project.
+- Ask for the project root. Inspect nested source checkouts, project instructions, manifests, lockfiles, CI, Dockerfiles and existing commands. Install at `<project>/dev/`, beside rather than inside the application checkout. Copy `dev.sh` unchanged. Produce the matching Dockerfile and `compose.yaml` from the supplied references. Retain only the tools, mounts, caches and project services needed for development. Preserve existing work and local state.
+- Bind-mount the actual working checkout including untracked files; write outputs as the invoking user. Keep project tool versions in the Dockerfile and services/mounts in Compose. Reuse native component build/check/test commands and targeted selectors. Retain applicable MTB helper behavior; do not turn an MTB-only test profile into a universal project requirement.
+- `dev.sh` builds the tool image when needed, starts the configured services and runs tool commands in containers. Per-command tool containers may exit. Preserve caches and persistent dev-service state between commands. `dev.sh update` refreshes the specified base images and rebuilds the tool image within project version constraints. It neither updates application dependencies/lockfiles nor resets project data.
+- Agents, including Codex, use the installed script for builds, checks and tests instead of installing a second Java/Node toolchain on the host. Put exact short invocations in `<project>/dev/AGENTS.md`. Bind that guide to actual role and Codex entrypoints: a guide beside a source checkout is not automatically read from inside it.
+- The assigned agent owns environment operations. Installer sets and verifies grants for the intended profile(s) and project script commands. Avoid host-wide changes. In team use, Planner accounts for the existing dev environment; Coder/Codex implement with it and Reviewer uses it for independent verification. Solo use requires no team roles.
+
+## Extraction and acceptance
+
+- Source: MTB `de.uke.iam.mtb/docker/dev/`: `dev.sh`, Dockerfile, Compose, guide, unit/profile helpers and their called resources. Reuse the Maker's `skills/dev-environment/SKILL.md` and locate the remaining dev-specific clauses in role templates, setup, grants and Codex instructions. Map each operative clause to a consumer; leave later Maker adoption/removal to its own project. Do not carry demo instructions into this package.
+- Anjin implements via Codex; Fujiko reviews. Use an isolated project root with no sibling skill installed. Demonstrate a mounted edit and untracked file are visible immediately, an ordinary build/check uses the same tool image and caches, native targeted commands receive their selectors, and generated outputs have the expected owner. Verify update refreshes build inputs without touching application dependency files or persistent state. Check guide discovery and script-command execution in intended agent contexts.
+- Reuse the existing project commands as smoke probes. Check only changed paths on adaptation. No new application framework tests, test framework or mandatory full-suite run to install the environment. No implementation, live-profile changes, tickets or Maker rollout in this planning stage.
